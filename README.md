@@ -1,38 +1,27 @@
+# 🤖 Agencia de Desarrollo IA (Local & Autónoma)
+
+Este repositorio contiene un framework ligero y potente para orquestar modelos de lenguaje locales (vía [LM Studio](https://lmstudio.ai/)) como agentes autónomos de desarrollo de software. 
+
+En lugar de copiar y pegar prompts manualmente, este sistema utiliza un **Script Orquestador** que coordina a diferentes "Agentes" (Personalidades) para que ejecuten "Tareas" (Prompts) de forma secuencial, escribiendo el código directamente en tu disco duro.
+
+---
+
+## 🏗️ Arquitectura del Sistema: Motor vs. Memoria
+
+El diseño de este framework se basa en la **Separación de Responsabilidades**. El entorno está dividido en dos grandes bloques para maximizar la escalabilidad y reutilización:
+
+```text
 mi_entorno_ia/
 │
-├── iniciar_entorno.py            # 🏗️ Script para crear estas carpetas automáticamente.
-├── orquestador.py                # 🧠 EL CEREBRO: El script que conecta LM Studio con tus archivos.
-├── index.md                      # 🗺️ EL MAPA: Le explica a la IA cómo moverse por estas carpetas.
+├── iniciar_entorno.py            # 🏗️ Script de inicialización rápida.
+├── orquestador.py                # 🧠 EL CEREBRO: Conecta la IA con los archivos locales.
+├── index.md                      # 🗺️ EL MAPA: Contexto global para que la IA no se pierda.
 │
-├── 📁 plantillas/                # ⚙️ EL MOTOR (Intocable. Basado en los 7 pasos de tu PDF)
-│   │
-│   ├── 📁 agents/                # 🎭 LAS PERSONALIDADES (System Prompts)
-│   │   ├── 01_arquitecto.md      # "Actúa como un arquitecto senior..."
-│   │   ├── 02_constructor.md     # "Actúa como un desarrollador senior..."
-│   │   ├── 03_detective.md       # "Actúa como un debugger experto..."
-│   │   ├── 04_critico.md         # "Actúa como un code reviewer..."
-│   │   ├── 05_optimizador.md     # "Actúa como ingeniero de rendimiento..."
-│   │   ├── 06_escudo.md          # "Actúa como ingeniero de QA..."
-│   │   └── 07_narrador.md        # "Actúa como technical writer..."
-│   │
-│   ├── 📁 prompts/               # 🎯 LAS TAREAS (User Prompts)
-│   │   ├── 01_planificacion.md   # "Diseña la arquitectura para..."
-│   │   ├── 02_generacion.md      # "Implementa lo siguiente..."
-│   │   ├── 03_resolucion.md      # "Analiza este problema metódicamente..."
-│   │   ├── 04_revision.md        # "Revisa este código evaluando seguridad..."
-│   │   ├── 05_rendimiento.md     # "Refactoriza este código..."
-│   │   ├── 06_cobertura.md       # "Escribe una suite de tests..."
-│   │   └── 07_tecnica.md         # "Genera documentación completa..."
-│   │
-│   └── 📁 skills/                # 🛠️ LAS REGLAS
-│       └── convenciones.md       # Ej: "Usa Python 3.10, tipado estricto, documenta en español"
+├── 📁 plantillas/                # ⚙️ EL MOTOR (Estático y Reutilizable)
+│   ├── 📁 agents/                # 🎭 System Prompts: Define quién es la IA (Arquitecto, Constructor...)
+│   ├── 📁 prompts/               # 🎯 User Prompts: Define qué debe hacer (Diseñar, Programar, Testear...)
+│   └── 📁 skills/                # 🛠️ Reglas técnicas globales (Convenciones, lenguajes, etc.)
 │
-└── 📁 mi_proyecto_actual/        # 💾 LA MEMORIA (Donde se guarda el trabajo real)
-    │
-    ├── 📁 01_spec/               # El contexto de lo que estamos construyendo
-    │   ├── idea_inicial.md       # Lo ÚNICO que escribes tú (ej: "Quiero una app del clima")
-    │   └── arquitectura.md       # Archivo generado por la IA tras ejecutar el Paso 1.
-    │
-    └── 📁 src/                   # El código fuente
-        ├── codigo_generado.py    # Archivos generados por la IA tras ejecutar el Paso 2.
-        └── README.md             # Generado por la IA tras ejecutar el Paso 7.
+└── 📁 mi_proyecto_actual/        # 💾 LA MEMORIA (Dinámico y Específico del proyecto)
+    ├── 📁 01_spec/               # Entradas y planes (idea_inicial.md, arquitectura.md)
+    └── 📁 src/                   # Salidas (Código fuente generado por la IA)
