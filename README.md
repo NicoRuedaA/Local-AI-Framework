@@ -1,6 +1,6 @@
 # 🤖 Agencia de Desarrollo IA (Local & Autónoma)
 
-Este repositorio contiene un framework ligero y potente para orquestar modelos de lenguaje locales (vía [LM Studio](https://lmstudio.ai/)) como agentes autónomos de desarrollo de software. 
+Este repositorio contiene un framework ligero y potente para orquestar modelos de lenguaje locales como agentes autónomos de desarrollo de software. 
 
 En lugar de copiar y pegar prompts manualmente, este sistema utiliza un **Script Orquestador** que coordina a diferentes "Agentes" (Personalidades) para que ejecuten "Tareas" (Prompts) de forma secuencial, escribiendo el código directamente en tu disco duro.
 
