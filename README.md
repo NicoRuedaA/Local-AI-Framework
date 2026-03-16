@@ -11,7 +11,7 @@ En lugar de copiar y pegar prompts manualmente, este sistema utiliza un **Script
 El diseño de este framework se basa en la **Separación de Responsabilidades**. El entorno está dividido en dos grandes bloques para maximizar la escalabilidad y reutilización:
 
 ```text
-mi_entorno_ia/
+proyecto/
 │
 ├── iniciar_entorno.py            # 🏗️ Script de inicialización rápida.
 ├── orquestador.py                # 🧠 EL CEREBRO: Conecta la IA con los archivos locales.
