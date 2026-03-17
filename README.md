@@ -80,18 +80,37 @@ Cada paso encadena el output del anterior como input, excepto el 4 (revisión) q
 ```
 proyecto/
 │
-├── orquestador.py              # 🧠 El cerebro: conecta la IA con los archivos
-├── iniciar_entorno.py          # 🏗️ Crea la estructura de carpetas inicial
-├── index.md                    # 🗺️ Contexto global que lee la IA en cada paso
+├── iniciar_entorno.py            # 🏗️ Script de inicialización rápida.
+├── orquestador.py                # 🧠 EL CEREBRO: Conecta la IA con los archivos locales.
+├── index.md                      # 🗺️ EL MAPA: Contexto global para que la IA no se pierda.
 │
-├── plantillas/                 # ⚙️ Motor (estático, no tocar)
-│   ├── agents/                 # 🎭 Roles de IA (quién actúa)
-│   ├── prompts/                # 🎯 Tareas de IA (qué hace)
-│   └── skills/                 # 🛠️ Convenciones técnicas globales
+├── 📁 plantillas/                # ⚙️ EL MOTOR (Estático y Reutilizable)
+│   ├── 📁 agents/                # 🎭 System Prompts: Define quién es la IA (Arquitecto, Constructor...)
+│   │   ├── 01_arquitecto.md      # "Actúa como un arquitecto senior..."
+│   │   ├── 02_constructor.md     # "Actúa como un desarrollador senior..."
+│   │   ├── 03_detective.md       # "Actúa como un debugger experto..."
+│   │   ├── 04_critico.md         # "Actúa como un code reviewer..."
+│   │   ├── 05_optimizador.md     # "Actúa como ingeniero de rendimiento..."
+│   │   ├── 06_escudo.md          # "Actúa como ingeniero de QA..."
+│   │   └── 07_narrador.md        # "Actúa como technical writer..."
+│   ├── 📁 prompts/               # 🎯 User Prompts: Define qué debe hacer (Diseñar, Programar, Testear...)
+│   │   ├── 01_planificacion.md   # "Diseña la arquitectura para..."
+│   │   ├── 02_generacion.md      # "Implementa lo siguiente..."
+│   │   ├── 03_resolucion.md      # "Analiza este problema metódicamente..."
+│   │   ├── 04_revision.md        # "Revisa este código evaluando seguridad..."
+│   │   ├── 05_rendimiento.md     # "Refactoriza este código..."
+│   │   ├── 06_cobertura.md       # "Escribe una suite de tests..."
+│   │   └── 07_tecnica.md         # "Genera documentación completa..."
+│   └── 📁 skills/                # 🛠️ Reglas técnicas globales (Convenciones, lenguajes, etc.)
+│       └── convenciones.md       # Ej: "Usa Python 3.10, tipado estricto, documenta en español"
 │
-└── mi_proyecto_actual/         # 💾 Memoria (específico de tu proyecto)
-    ├── 01_spec/                # Idea inicial + arquitectura generada
-    └── src/                    # Código y documentación generados
+└── 📁 mi_proyecto_actual/        # 💾 LA MEMORIA (Dinámico y Específico del proyecto)
+    ├── 📁 01_spec/               # Entradas y planes (idea_inicial.md, arquitectura.md)
+    │   ├── idea_inicial.md       # Lo ÚNICO que escribes tú (ej: "Quiero una app del clima")
+    │   └── arquitectura.md       # Archivo generado por la IA tras ejecutar el Paso 1.
+    └── 📁 src/                   # Salidas (Código fuente generado por la IA)
+        ├── codigo_generado.py    # Archivos generados por la IA tras ejecutar el Paso 2.
+        └── README.md             # Generado por la IA tras ejecutar el Paso 7.
 ```
 
 ---
