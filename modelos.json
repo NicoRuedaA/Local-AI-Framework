@@ -1,0 +1,12 @@
+{
+  "_comentario": "Asigna un modelo distinto a cada agente. El nombre debe coincidir con el modelo cargado en LM Studio.",
+  "_como_usar": "Descarga varios modelos en LM Studio y escribe aquí el nombre exacto que aparece en la pestaña 'Local Server'.",
+
+  "arquitecto":  "local-model",
+  "constructor": "local-model",
+  "detective":   "local-model",
+  "critico":     "local-model",
+  "optimizador": "local-model",
+  "escudo":      "local-model",
+  "narrador":    "local-model"
+}
