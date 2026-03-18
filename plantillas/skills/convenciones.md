@@ -1,26 +1,36 @@
-# Convenciones Técnicas Obligatorias
+# Convenciones Técnicas
 
 ## Código
-- Escribe código modular y limpio siguiendo los principios de Clean Code.
-- Aplica el principio de responsabilidad única (SRP): cada función/clase hace una sola cosa.
-- Usa nombres descriptivos en el mismo idioma que el proyecto (inglés para código, español para comentarios si el usuario lo prefiere).
-- No añadas comentarios obvios. Comenta únicamente la lógica no evidente.
-- Incluye tipado estático siempre que el lenguaje lo permita (type hints en Python, TypeScript sobre JS, etc.).
-- Maneja todos los errores de forma explícita: nada de `except: pass` ni errores silenciosos.
-- No uses números o strings mágicos: extráelos como constantes con nombre descriptivo.
 
-## Estructura de archivos
-- Un módulo = una responsabilidad. Evita archivos "cajón de sastre".
-- Separa la lógica de negocio de la capa de entrada/salida (CLI, API, base de datos).
-- Los tests van en una carpeta `/tests` espejando la estructura de `/src`.
+- Escribe funciones pequeñas con un único nivel de abstracción y una sola responsabilidad (SRP).
+- Usa nombres que revelen la intención. Sin abreviaturas crípticas. Idioma: inglés para código, español para comentarios de lógica no evidente.
+- No comentarás lo obvio: solo la lógica que no se explica sola con el nombre.
+- Incluye tipado estático siempre que el lenguaje lo permita (type hints en Python, TypeScript sobre JS). Prohibido `any` u `Object` salvo causa justificada.
+- Maneja todos los errores de forma explícita. Prohibido `except: pass` y errores silenciosos.
+- Extrae todo valor literal a una constante con nombre descriptivo (clase `Constants` o `Enum`). Prohibidos los números y strings mágicos.
 
-## Formato de entrega
-- Entrega el código en bloques separados por archivo.
-- Indica la ruta completa de cada archivo como encabezado antes del bloque de código.
-- Si se necesita instalar dependencias, indícalas al inicio con el comando exacto.
-- Al final de cada entrega incluye una sección breve "Cómo probarlo" con pasos exactos.
+## Arquitectura y Diseño
+
+Aplica SOLID como guía de diseño:
+
+- **SRP / Módulos**: Un archivo, una responsabilidad. Evita archivos "cajón de sastre".
+- **OCP**: Diseña para extender mediante polimorfismo o composición, sin tocar el código existente.
+- **ISP**: Prefiere interfaces específicas sobre interfaces generalistas. No obligues a implementar métodos que no se usan.
+- **DIP**: La lógica de negocio no depende de detalles de infraestructura. Usa interfaces/abstracciones para desacoplar dominio de base de datos, APIs externas, etc.
+
+Aplica patrones de diseño clásicos (Factory, Strategy, Observer) cuando la complejidad lo justifique y simplifiquen estructuras `if/else` o `switch` excesivas.
+
+## Estructura de Archivos
+
+- Separa radicalmente la lógica de negocio (dominio/servicios) de la capa de persistencia y de la interfaz (CLI/Web/API).
+- La estructura de `/tests` debe ser un espejo de `/src`.
 
 ## Calidad
-- El código debe funcionar sin modificaciones adicionales salvo la configuración del entorno.
-- Incluye validación de inputs en todos los puntos de entrada (funciones públicas, endpoints, CLI).
-- Prefiere la legibilidad sobre la brevedad cuando haya que elegir.
+
+- El código entregado debe funcionar sin modificaciones salvo configuración de entorno.
+- Valida los inputs en todos los puntos de entrada: funciones públicas, endpoints, CLI.
+- Prioriza legibilidad sobre brevedad cuando tengas que elegir.
+
+## Entrega
+
+-
