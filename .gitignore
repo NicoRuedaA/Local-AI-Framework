@@ -1,0 +1,81 @@
+# ──────────────────────────────────────────────
+# SECRETOS Y CONFIGURACIÓN LOCAL
+# ──────────────────────────────────────────────
+.env
+*.key
+*.secret
+
+# ──────────────────────────────────────────────
+# OUTPUTS GENERADOS POR LA IA
+# (no subir — son específicos de cada proyecto)
+# ──────────────────────────────────────────────
+mi_proyecto_actual/src/
+mi_proyecto_actual/01_spec/01_arquitectura.md
+mi_proyecto_actual/context.md
+
+# Sí se sube: la idea inicial (es tuya, no de la IA)
+!mi_proyecto_actual/01_spec/idea_inicial.md
+
+# ──────────────────────────────────────────────
+# PYTHON
+# ──────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+pip-wheel-metadata/
+
+# Entornos virtuales
+venv/
+.venv/
+env/
+.env/
+ENV/
+
+# ──────────────────────────────────────────────
+# EDITORES E IDEs
+# ──────────────────────────────────────────────
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# JetBrains (PyCharm, etc.)
+.idea/
+*.iml
+*.iws
+
+# Vim / Emacs
+*.swp
+*.swo
+*~
+\#*\#
+
+# ──────────────────────────────────────────────
+# SISTEMA OPERATIVO
+# ──────────────────────────────────────────────
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+
+# ──────────────────────────────────────────────
+# LOGS Y TEMPORALES
+# ──────────────────────────────────────────────
+*.log
+*.tmp
+*.temp

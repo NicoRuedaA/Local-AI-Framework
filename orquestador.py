@@ -1,12 +1,23 @@
 """
-orquestador.py — Local AI Framework (v2)
+orquestador.py — Local AI Framework (v2.1)
 
 MEJORAS IMPLEMENTADAS:
   1. Crítico (paso 4) alimenta al Optimizador (paso 5) — retroalimentación real entre agentes.
   2. Memoria acumulativa entre proyectos — context.md persiste el historial de decisiones.
-  3. Soporte multi-modelo — cada agente puede usar un modelo distinto vía modelos.json.
+  3. Soporte multi-modelo y multi-proveedor — LM Studio (local) + Gemini (Google AI Studio).
   4. Soporte multi-archivo — extrae bloques de código y los guarda como archivos individuales.
   5. Manejo de errores con reintentos — reintentos automáticos y detección de outputs vacíos.
+
+PROVEEDORES SOPORTADOS:
+  - lmstudio  → modelos locales vía LM Studio (puerto 1234)
+  - gemini    → Google Gemini vía API key de Google AI Studio
+
+CONFIGURACIÓN (modelos.json):
+  {
+    "arquitecto":  {"proveedor": "gemini",   "modelo": "gemini-2.0-flash"},
+    "constructor": {"proveedor": "lmstudio", "modelo": "qwen2.5-coder-32b"},
+    ...
+  }
 """
 
 import os
@@ -18,48 +29,94 @@ from datetime import datetime
 from openai import OpenAI
 
 # ──────────────────────────────────────────────
-# CONFIGURACIÓN DE MODELOS (MEJORA 3)
+# PROVEEDORES
 # ──────────────────────────────────────────────
 
+# Nombres exactos de tus modelos en LM Studio (ajusta si difieren)
+NOMBRE_QWEN_32B = "qwen2.5-coder-32b-instruct"
+NOMBRE_QWEN_7B  = "qwen2.5-coder-7b-instruct"
+
+# Modelo Gemini recomendado con la API gratuita de Google AI Studio
+NOMBRE_GEMINI   = "gemini-2.0-flash"
+
 MODELOS_DEFAULT = {
-    "arquitecto":  "local-model",
-    "constructor": "local-model",
-    "detective":   "local-model",
-    "critico":     "local-model",
-    "optimizador": "local-model",
-    "escudo":      "local-model",
-    "narrador":    "local-model",
+    "arquitecto":  {"proveedor": "gemini",   "modelo": NOMBRE_GEMINI},
+    "constructor": {"proveedor": "lmstudio", "modelo": NOMBRE_QWEN_32B},
+    "detective":   {"proveedor": "lmstudio", "modelo": NOMBRE_QWEN_32B},
+    "critico":     {"proveedor": "gemini",   "modelo": NOMBRE_GEMINI},
+    "optimizador": {"proveedor": "lmstudio", "modelo": NOMBRE_QWEN_32B},
+    "escudo":      {"proveedor": "lmstudio", "modelo": NOMBRE_QWEN_7B},
+    "narrador":    {"proveedor": "lmstudio", "modelo": NOMBRE_QWEN_7B},
 }
 
 def cargar_modelos() -> dict:
     """
     Carga la configuración de modelos desde modelos.json si existe.
-    Permite asignar un modelo distinto a cada agente:
-
+    Formato esperado:
         {
-          "arquitecto":  "deepseek-coder-33b",
-          "constructor": "qwen2.5-coder-7b",
-          ...
+          "arquitecto":  {"proveedor": "gemini",   "modelo": "gemini-2.0-flash"},
+          "constructor": {"proveedor": "lmstudio", "modelo": "qwen2.5-coder-32b-instruct"}
         }
-
-    Si el archivo no existe, usa el modelo por defecto para todos.
+    Si el archivo no existe, usa MODELOS_DEFAULT.
     """
     ruta = "modelos.json"
     if os.path.exists(ruta):
         with open(ruta, "r", encoding="utf-8") as f:
             datos = json.load(f)
-        modelos = {**MODELOS_DEFAULT, **datos}
+        # Ignorar claves que empiecen por _ (comentarios)
+        datos_limpios = {k: v for k, v in datos.items() if not k.startswith("_")}
+        modelos = {**MODELOS_DEFAULT, **datos_limpios}
         print(f"📦 Configuración de modelos cargada desde {ruta}")
         return modelos
+    print("📦 Usando configuración de modelos por defecto (Gemini + Qwen local)")
     return MODELOS_DEFAULT.copy()
 
 MODELOS = cargar_modelos()
 
-def get_cliente(agente: str) -> tuple[OpenAI, str]:
-    """Devuelve el cliente OpenAI y el nombre del modelo para el agente dado."""
-    modelo = MODELOS.get(agente, "local-model")
-    cliente = OpenAI(base_url="http://localhost:1234/v1", api_key="lm-studio")
-    return cliente, modelo
+
+def _leer_gemini_api_key() -> str:
+    """
+    Lee la API key de Gemini desde la variable de entorno GEMINI_API_KEY
+    o desde el archivo .env en la raíz del proyecto.
+    """
+    # 1. Variable de entorno
+    key = os.environ.get("GEMINI_API_KEY", "")
+    if key:
+        return key
+    # 2. Archivo .env
+    if os.path.exists(".env"):
+        with open(".env", "r", encoding="utf-8") as f:
+            for linea in f:
+                linea = linea.strip()
+                if linea.startswith("GEMINI_API_KEY="):
+                    return linea.split("=", 1)[1].strip()
+    return ""
+
+
+def llamar_gemini(api_key: str, modelo: str, system_prompt: str, user_prompt: str, temperature: float) -> str:
+    """
+    Llama a la API de Google AI Studio (Gemini) usando el endpoint compatible con OpenAI.
+    Gemini expone un endpoint /v1beta/openai/ que acepta el mismo formato que OpenAI.
+    """
+    cliente = OpenAI(
+        base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+        api_key=api_key,
+    )
+    respuesta = cliente.chat.completions.create(
+        model=modelo,
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user",   "content": user_prompt},
+        ],
+        temperature=temperature,
+    )
+    return respuesta.choices[0].message.content
+
+
+def get_config_agente(agente: str) -> tuple[str, str]:
+    """Devuelve (proveedor, nombre_modelo) para el agente dado."""
+    config = MODELOS.get(agente, {"proveedor": "lmstudio", "modelo": "local-model"})
+    return config["proveedor"], config["modelo"]
 
 
 # ──────────────────────────────────────────────
@@ -239,45 +296,59 @@ MAX_REINTENTOS = 3
 PAUSA_ENTRE_REINTENTOS = 5  # segundos
 
 def llamar_modelo(
-    cliente: OpenAI,
+    proveedor: str,
     modelo: str,
     system_prompt: str,
     user_prompt: str,
     temperature: float,
 ) -> str | None:
     """
-    Llama al modelo con reintentos automáticos en caso de error de red o
-    respuesta vacía. Devuelve el texto generado o None si todos los intentos fallan.
+    Llama al modelo correcto según el proveedor, con reintentos automáticos.
+    Proveedores soportados: 'lmstudio', 'gemini'.
+    Devuelve el texto generado o None si todos los intentos fallan.
     """
+    gemini_key = _leer_gemini_api_key() if proveedor == "gemini" else ""
+
+    if proveedor == "gemini" and not gemini_key:
+        print("\n❌ Proveedor 'gemini' configurado pero no se encontró GEMINI_API_KEY.")
+        print("   Añádela como variable de entorno o en un archivo .env en la raíz:")
+        print("   GEMINI_API_KEY=tu_clave_aqui")
+        return None
+
     for intento in range(1, MAX_REINTENTOS + 1):
         try:
-            respuesta = cliente.chat.completions.create(
-                model=modelo,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user",   "content": user_prompt},
-                ],
-                temperature=temperature,
-            )
-            resultado = respuesta.choices[0].message.content
+            if proveedor == "gemini":
+                resultado = llamar_gemini(gemini_key, modelo, system_prompt, user_prompt, temperature)
+            else:
+                # lmstudio u otro proveedor compatible con OpenAI
+                cliente = OpenAI(base_url="http://localhost:1234/v1", api_key="lm-studio")
+                respuesta = cliente.chat.completions.create(
+                    model=modelo,
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user",   "content": user_prompt},
+                    ],
+                    temperature=temperature,
+                )
+                resultado = respuesta.choices[0].message.content
 
             # Detectar output vacío o demasiado corto (señal de fallo silencioso)
             if not resultado or len(resultado.strip()) < 50:
-                raise ValueError(f"Output sospechosamente corto ({len(resultado.strip())} chars). Posible fallo del modelo.")
+                raise ValueError(f"Output sospechosamente corto ({len(resultado.strip())} chars).")
 
             return resultado
 
         except Exception as e:
-            print(f"\n⚠️  Intento {intento}/{MAX_REINTENTOS} fallido: {e}")
+            print(f"\n⚠️  Intento {intento}/{MAX_REINTENTOS} fallido [{proveedor}/{modelo}]: {e}")
             if intento < MAX_REINTENTOS:
                 print(f"   ⏳ Reintentando en {PAUSA_ENTRE_REINTENTOS}s...")
                 time.sleep(PAUSA_ENTRE_REINTENTOS)
             else:
                 print("\n❌ Todos los reintentos agotados.")
-                print(
-                    "Asegúrate de que LM Studio está abierto, el servidor local iniciado "
-                    "en el puerto 1234 y la opción CORS activada."
-                )
+                if proveedor == "lmstudio":
+                    print("   Verifica que LM Studio está abierto, servidor en puerto 1234 y CORS activado.")
+                elif proveedor == "gemini":
+                    print("   Verifica tu GEMINI_API_KEY y que tienes cuota disponible en Google AI Studio.")
                 return None
 
 
@@ -295,10 +366,10 @@ def ejecutar_paso(paso: str, auto: bool = False) -> bool:
 
     config = FLUJO[paso]
     agente_key = config["agente_key"]
-    cliente, modelo = get_cliente(agente_key)
+    proveedor, modelo = get_config_agente(agente_key)
 
     print(f"\n{'='*55}")
-    print(f"🚀 Paso {paso}/7 — {config['nombre']}  [modelo: {modelo}]")
+    print(f"🚀 Paso {paso}/7 — {config['nombre']}  [{proveedor} / {modelo}]")
     print(f"{'='*55}")
     print(f"  📥 Input : {config['input']}")
     if "input_extra" in config:
@@ -342,7 +413,7 @@ def ejecutar_paso(paso: str, auto: bool = False) -> bool:
 
     print("\n🧠 Consultando modelo... (puede tardar unos segundos)\n")
 
-    resultado = llamar_modelo(cliente, modelo, system_prompt, user_prompt, config["temperature"])
+    resultado = llamar_modelo(proveedor, modelo, system_prompt, user_prompt, config["temperature"])
     if resultado is None:
         return False
 
