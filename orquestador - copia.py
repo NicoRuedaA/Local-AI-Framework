@@ -353,40 +353,12 @@ def llamar_modelo(
 
 
 # ──────────────────────────────────────────────
-# PROGRESO DEL PIPELINE
-# ──────────────────────────────────────────────
-
-def _barra_progreso(completados: int, total: int, tiempos: list[float]) -> None:
-    """
-    Imprime barra de progreso con %, pasos completados, tiempo transcurrido y ETA.
-    """
-    pct     = int((completados / total) * 100)
-    relleno = int(pct / 5)
-    barra   = "█" * relleno + "░" * (20 - relleno)
-
-    if tiempos:
-        media        = sum(tiempos) / len(tiempos)
-        eta_seg      = int(media * (total - completados))
-        eta_m, eta_s = divmod(eta_seg, 60)
-        trans_m, trans_s = divmod(int(sum(tiempos)), 60)
-        eta_txt   = f"{eta_m}m {eta_s:02d}s"
-        trans_txt = f"{trans_m}m {trans_s:02d}s"
-    else:
-        eta_txt = trans_txt = "--"
-
-    print(f"\n  [{barra}] {pct}%  —  {completados}/{total} pasos completados")
-    print(f"  ⏱  Transcurrido: {trans_txt}   |   ETA restante: {eta_txt}\n")
-
-
-# ──────────────────────────────────────────────
 # EJECUCIÓN DE UN PASO
 # ──────────────────────────────────────────────
 
-def ejecutar_paso(paso: str, auto: bool = False,
-                  completados: int = 0, tiempos: list[float] | None = None) -> bool:
+def ejecutar_paso(paso: str, auto: bool = False) -> bool:
     """
     Ejecuta un paso del flujo. Devuelve True si se guardó el resultado, False si falló o se canceló.
-    completados y tiempos se usan para mostrar el progreso en modo automático.
     """
     if paso not in FLUJO:
         print(f"❌ Error: El paso '{paso}' no existe. Usa un número del 1 al 7.")
@@ -396,14 +368,8 @@ def ejecutar_paso(paso: str, auto: bool = False,
     agente_key = config["agente_key"]
     proveedor, modelo = get_config_agente(agente_key)
 
-    total_pasos = len(FLUJO)
-
-    # Mostrar progreso si estamos en modo automático
-    if auto and tiempos is not None:
-        _barra_progreso(completados, total_pasos, tiempos)
-
     print(f"\n{'='*55}")
-    print(f"🚀 Paso {paso}/{total_pasos} — {config['nombre']}  [{proveedor} / {modelo}]")
+    print(f"🚀 Paso {paso}/7 — {config['nombre']}  [{proveedor} / {modelo}]")
     print(f"{'='*55}")
     print(f"  📥 Input : {config['input']}")
     if "input_extra" in config:
@@ -446,14 +412,10 @@ def ejecutar_paso(paso: str, auto: bool = False,
 """
 
     print("\n🧠 Consultando modelo... (puede tardar unos segundos)\n")
-    t_inicio = time.time()
 
     resultado = llamar_modelo(proveedor, modelo, system_prompt, user_prompt, config["temperature"])
-    t_paso = time.time() - t_inicio
     if resultado is None:
         return False
-
-    print(f"  ⏱  Tiempo del modelo: {int(t_paso // 60)}m {int(t_paso % 60):02d}s")
 
     # ── Preview ───────────────────────────────────────────
     print("=" * 55)
@@ -481,11 +443,7 @@ def ejecutar_paso(paso: str, auto: bool = False,
     # MEJORA 2: actualizar memoria acumulativa
     actualizar_contexto(paso, config["nombre"], resultado)
 
-    # Registrar tiempo de este paso para el cálculo de ETA
-    if tiempos is not None:
-        tiempos.append(t_paso)
-
-    print(f"🎉 Paso {paso} completado{'  (modo automático)' if auto else ''}.  [{int(t_paso // 60)}m {int(t_paso % 60):02d}s]")
+    print(f"🎉 Paso {paso} completado{'  (modo automático)' if auto else ''}.")
     return True
 
 
@@ -496,22 +454,12 @@ def ejecutar_paso(paso: str, auto: bool = False,
 def modo_automatico() -> None:
     """Ejecuta los 7 pasos en secuencia sin confirmaciones interactivas."""
     print("\n🤖 MODO AUTOMÁTICO — ejecutando los 7 pasos en secuencia\n")
-    tiempos: list[float] = []
-    pasos   = sorted(FLUJO.keys())
-    total   = len(pasos)
-
-    for i, paso in enumerate(pasos):
-        exito = ejecutar_paso(paso, auto=True, completados=i, tiempos=tiempos)
+    for paso in sorted(FLUJO.keys()):
+        exito = ejecutar_paso(paso, auto=True)
         if not exito:
             print(f"\n⛔ Pipeline detenido en el paso {paso} por error irrecuperable.")
             sys.exit(1)
-
-    # Barra al 100% al terminar
-    _barra_progreso(total, total, tiempos)
-
-    total_seg        = int(sum(tiempos))
-    total_m, total_s = divmod(total_seg, 60)
-    print(f"🏁 Pipeline completo en {total_m}m {total_s:02d}s. Todos los archivos generados.")
+    print("\n🏁 Pipeline completo. Todos los archivos han sido generados.")
 
 
 def mostrar_ayuda() -> None:
@@ -557,26 +505,13 @@ Extracción multi-archivo:
 
 
 def mostrar_status() -> None:
-    """Muestra qué archivos de output ya existen, con porcentaje de progreso."""
-    pasos      = list(FLUJO.items())
-    total      = len(pasos)
-    completados = sum(1 for _, c in pasos if os.path.exists(c["output"]))
-    pct        = int((completados / total) * 100)
-    relleno    = int(pct / 5)
-    barra      = "█" * relleno + "░" * (20 - relleno)
-
-    print(f"\n📊 Estado del pipeline:\n")
-    print(f"  [{barra}] {pct}%  —  {completados}/{total} pasos completados\n")
-
-    for paso, config in pasos:
+    """Muestra qué archivos de output ya existen y el estado de la memoria."""
+    print("\n📊 Estado del pipeline:\n")
+    for paso, config in FLUJO.items():
         output = config["output"]
-        if os.path.exists(output):
-            tam = os.path.getsize(output)
-            print(f"  ✅ Paso {paso} — {config['nombre']}  ({tam:,} bytes)")
-        else:
-            print(f"  ⬜ Paso {paso} — {config['nombre']}  (pendiente)")
+        existe = "✅" if os.path.exists(output) else "⬜"
+        print(f"  {existe} Paso {paso} — {config['nombre']}")
         print(f"     {output}")
-
     print()
     tiene_memoria = os.path.exists(RUTA_CONTEXTO)
     print(f"  {'✅' if tiene_memoria else '⬜'} Memoria acumulativa: {RUTA_CONTEXTO}")
