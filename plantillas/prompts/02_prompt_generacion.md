@@ -38,6 +38,41 @@ Si el stack del proyecto requiere un orden diferente, el orden correcto es el qu
 
 **REGLA 6 — DEPENDENCIAS:** El archivo de dependencias del proyecto incluye versiones fijadas para todas las dependencias directas.
 
+**REGLA 7 — UN MODELO, UN ARCHIVO:** Cada modelo Django se define en un único `models.py` dentro de su app. El `models.py` raíz del proyecto Django (ej: `nexo/models.py`) se entrega VACÍO con este contenido exacto:
+```python
+# Los modelos viven en sus respectivas apps. Este archivo se mantiene vacío.
+```
+No importes ni reexportes modelos desde el raíz. No copies definiciones de modelos entre archivos.
+
+**REGLA 8 — AUTH_USER_MODEL OBLIGATORIO:** Si el proyecto define un modelo `User` custom:
+1. `settings.py` DEBE incluir `AUTH_USER_MODEL = 'nombre_app.User'`
+2. Todos los `ForeignKey` a User DEBEN usar `settings.AUTH_USER_MODEL`:
+   ```python
+   from django.conf import settings
+   created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+   ```
+3. Las factories de test DEBEN referenciar el User custom:
+   ```python
+   from django.conf import settings
+   class UserFactory(factory.django.DjangoModelFactory):
+       class Meta:
+           model = settings.AUTH_USER_MODEL
+   ```
+
+**REGLA 9 — CELERY SIEMPRE ASÍNCRONO:** El código de envío de emails, notificaciones o cualquier operación I/O pesada va SIEMPRE en una task de Celery (`tasks.py`), nunca en `services.py`. `services.py` puede llamar a `.delay()`, pero nunca a `send_mail` directamente.
+
+**REGLA 10 — CELERY_TASK_ALWAYS_EAGER SOLO EN TESTS:** Esta variable NUNCA va en `settings.py`. Solo se activa en `conftest.py` como fixture:
+```python
+@pytest.fixture(autouse=True)
+def celery_eager(settings):
+    settings.CELERY_TASK_ALWAYS_EAGER = True
+    settings.CELERY_TASK_EAGER_PROPAGATES = True
+```
+
+**REGLA 11 — TRANSACCIONES EN OPERACIONES CONCURRENTES:** Cualquier operación que use `select_for_update()` DEBE estar dentro de `with transaction.atomic():`. Sin la transacción, el lock no tiene efecto.
+
+**REGLA 12 — max_length EN CAMPOS STATUS:** Para campos `CharField` con `choices`, el `max_length` debe cubrir el valor almacenado más largo (el key, no el label). Usa `TextChoices` con keys cortos y calcula el `max_length` con margen.
+
 ## Al final de todos los archivos
 Incluye una sección "Cómo ejecutar el proyecto" con los comandos exactos y en orden:
 1. Instalar dependencias

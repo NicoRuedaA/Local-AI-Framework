@@ -41,7 +41,13 @@ class FeatureRequestSerializer(serializers.ModelSerializer):
 
 ### 5. `CELERY_TASK_ALWAYS_EAGER = True` fuera de configuración de tests
 **Detectar:** `CELERY_TASK_ALWAYS_EAGER = True` en `settings.py` principal.
-**Corrección:** elimínalo de `settings.py`. Debe estar solo en `settings_test.py` o en el `conftest.py` con `@override_settings`.
+**Corrección:** elimínalo de `settings.py`. Debe estar solo en `conftest.py` como fixture autouse:
+```python
+@pytest.fixture(autouse=True)
+def celery_eager(settings):
+    settings.CELERY_TASK_ALWAYS_EAGER = True
+    settings.CELERY_TASK_EAGER_PROPAGATES = True
+```
 
 ### 6. Modelo custom `User` no registrado en `AUTH_USER_MODEL`
 **Detectar:** existe `class User(AbstractUser)` en alguna app pero `settings.py` no tiene `AUTH_USER_MODEL`.
@@ -128,6 +134,79 @@ class UserFactory(factory.django.DjangoModelFactory):
 ```
 
 **Cuando corrijas `conftest.py`, verifica los tres problemas siempre. Aparecen juntos.**
+
+### 10. Modelo duplicado en `models.py` raíz del proyecto
+**Detectar:** el mismo nombre de modelo (ej: `FeatureRequest`, `Vote`) definido en más de un archivo `models.py` del proyecto — por ejemplo en `nexo/models.py` Y en `nexo/features/models.py`.
+
+**Por qué es crítico:** cada definición es una clase Python diferente. Los imports desde distintos archivos apuntan a objetos distintos. Las migrations generan tablas duplicadas o en conflicto. Los serializers y vistas que importan desde distintos orígenes operan con schemas diferentes.
+
+**Corrección:** elimina por completo las definiciones del `models.py` raíz. El archivo raíz debe quedar:
+```python
+# Los modelos viven en sus respectivas apps. Este archivo se mantiene vacío.
+```
+La definición canónica es la que está en el `models.py` de la app correspondiente.
+
+### 11. ForeignKey a User hardcodeado en lugar de `settings.AUTH_USER_MODEL`
+**Detectar:** `ForeignKey(User, ...)` o `ForeignKey('auth.User', ...)` en cualquier modelo, cuando el proyecto define un User custom en alguna app.
+
+**Por qué es crítico:** si `AUTH_USER_MODEL` apunta a `accounts.User` pero los ForeignKeys apuntan a `auth.User`, Django genera relaciones rotas. Las migrations fallan o crean tablas de join incorrectas.
+
+**Corrección:**
+```python
+# MAL
+from django.contrib.auth.models import User
+created_by = models.ForeignKey(User, on_delete=models.CASCADE)  # ❌
+
+# BIEN
+from django.conf import settings
+created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)  # ✅
+```
+
+**Dónde buscar:** en todos los archivos `models.py` del proyecto. También en `conftest.py` donde se importa el modelo User para factories.
+
+### 12. `save()` override que reimplementa `auto_now` / `auto_now_add`
+**Detectar:** un método `save()` en un modelo cuyo único propósito es asignar `created_at` o `updated_at`.
+
+**Por qué es un bug:** además de ser código redundante, si el override usa `timezone` (para `timezone.now()`) sin importarlo, lanza `NameError` en runtime la primera vez que se crea o actualiza una instancia.
+
+**Corrección:** elimina el override completo. Asegúrate de que los campos tienen:
+```python
+created_at = models.DateTimeField(auto_now_add=True)
+updated_at = models.DateTimeField(auto_now=True)
+```
+
+### 13. `unique_together` en Meta (deprecated)
+**Detectar:** `unique_together = [...]` o `unique_together = (...)` en la clase `Meta` de cualquier modelo.
+
+**Corrección:** reemplaza por `UniqueConstraint` en `Meta.constraints`:
+```python
+from django.db.models import UniqueConstraint
+
+class Meta:
+    constraints = [
+        UniqueConstraint(fields=['user', 'feature_request'], name='uq_vote_user_feature')
+    ]
+```
+
+### 14. `max_length` insuficiente en `CharField` con `choices`
+**Detectar:** campo `CharField` con `choices` donde el `max_length` es menor que la longitud del valor almacenado más largo.
+
+**Cómo calcularlo:** el valor almacenado es el **primer elemento** de cada tupla de choices (o el atributo `.value` si usas `TextChoices`). Mide el más largo en caracteres y añade margen.
+
+**Ejemplo del error:**
+```python
+# El valor 'Bajo revisión' tiene 13 chars pero max_length=10 — truncamiento silencioso
+status = models.CharField(max_length=10, choices=[('Bajo revisión', 'Bajo revisión')])  # ❌
+```
+
+**Corrección:** usa `TextChoices` con keys cortos y `max_length` generoso:
+```python
+class Status(models.TextChoices):
+    BAJO_REVISION = 'bajo_revision', 'Bajo revisión'  # key: 13 chars
+    LANZADO = 'lanzado', 'Lanzado'                    # key: 7 chars
+
+status = models.CharField(max_length=20, choices=Status.choices)  # ✅ max_length >= 13
+```
 
 ## Formato de entrega
 
