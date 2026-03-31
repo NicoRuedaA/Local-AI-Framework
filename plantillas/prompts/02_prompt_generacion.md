@@ -5,43 +5,44 @@ Implementa el proyecto COMPLETO según la arquitectura definida en el INPUT. Est
 **REGLA 1 — COMPLETITUD:** Genera TODOS los archivos listados en la arquitectura. Si la arquitectura define 12 archivos, entregas 12 archivos. Está terminantemente prohibido escribir comentarios como "el resto de la implementación es similar", "aquí iría el código de X", o "implementación omitida por brevedad". O escribes el código completo o no lo escribes.
 
 **REGLA 2 — FORMATO DE ARCHIVO:** Cada archivo va precedido de su ruta completa en este formato exacto, sin excepciones:
-```python filename: ruta/completa/del/archivo.py
+```[lenguaje] filename: ruta/completa/del/archivo.[ext]
 
-Para archivos no-Python usa la extensión correcta:
-```text filename: requirements.txt
-```markdown filename: .env.example
+Usa la extensión correcta según el tipo de archivo:
+- Código fuente: la extensión del lenguaje del proyecto (`.py`, `.js`, `.ts`, `.go`...)
+- Texto plano: `.txt`, `.env`, `.example`
+- Markdown: `.md`
 
-**REGLA 3 — ORDEN DE ENTREGA:** Sigue este orden estricto para que cada archivo pueda importar al anterior sin errores:
-1. requirements.txt
-2. .env.example
-3. manage.py
-4. nexo/settings.py
-5. Modelos de cada app (models.py) — empezando por las apps sin dependencias
-6. Admin (admin.py) de cada app
-7. Serializadores (serializers.py) de cada app
-8. Servicios (services.py) de cada app — aquí va la lógica de negocio
-9. Vistas (views.py) de cada app
-10. URLs de cada app (urls.py) y URLs raíz
-11. Tasks de Celery (tasks.py)
-12. conftest.py y fixtures de desarrollo
+**REGLA 3 — ORDEN DE ENTREGA:** Sigue el orden natural de dependencias del stack definido en `convenciones.md`. La regla general es: entrega primero los archivos de los que dependen otros. Orden típico:
+1. Archivo de dependencias del proyecto (`requirements.txt`, `package.json`, `go.mod`...)
+2. Archivo de variables de entorno de ejemplo (`.env.example`)
+3. Configuración del proyecto (`settings.py`, `config.js`, `application.yml`...)
+4. Modelos / entidades de dominio — empezando por los que no tienen dependencias
+5. Capa de acceso a datos / repositorios
+6. Capa de servicios — aquí va la lógica de negocio
+7. Capa de presentación / controladores / vistas
+8. Rutas / URLs
+9. Tareas asíncronas / workers
+10. Tests y fixtures
+
+Si el stack del proyecto requiere un orden diferente, el orden correcto es el que permite ejecutar cada archivo sin errores de import al cargarlo.
 
 **REGLA 4 — CALIDAD DEL CÓDIGO:**
-- Type hints en todas las funciones y métodos públicos
-- Manejo explícito de todos los errores (nunca `except: pass`)
-- `select_for_update()` en operaciones de votación para evitar race conditions
-- `select_related` / `prefetch_related` donde haya ForeignKeys en listados
-- Validaciones en serializers, no en vistas
-- Lógica de negocio en services.py, no en vistas ni modelos
-- Constantes en lugar de strings mágicos (usa un archivo `constants.py` o enums)
+- Aplica todas las convenciones definidas en `convenciones.md` sin excepción
+- Tipado estático en todas las funciones y métodos públicos (si el lenguaje lo permite)
+- Manejo explícito de todos los errores — nunca errores silenciosos
+- Validaciones en la capa correcta según la arquitectura (no en controladores ni modelos)
+- Lógica de negocio en la capa de servicios, no en controladores ni modelos
+- Constantes en lugar de strings y números mágicos
 
-**REGLA 5 — DEPENDENCIAS:** El requirements.txt incluye versiones fijadas (==) para todas las dependencias directas e indirectas relevantes.
+**REGLA 5 — IMPORTS:** Cada archivo importa todo lo que usa. Un símbolo importado en otro archivo del proyecto NO está disponible en el archivo actual. Revisa cada archivo de forma completamente independiente antes de entregarlo.
+
+**REGLA 6 — DEPENDENCIAS:** El archivo de dependencias del proyecto incluye versiones fijadas para todas las dependencias directas.
 
 ## Al final de todos los archivos
 Incluye una sección "Cómo ejecutar el proyecto" con los comandos exactos y en orden:
-1. Crear entorno virtual e instalar dependencias
+1. Instalar dependencias
 2. Configurar variables de entorno
-3. Ejecutar migraciones
-4. Crear superusuario
-5. Levantar Redis (comando Docker si aplica)
-6. Levantar worker de Celery
-7. Levantar servidor Django
+3. Preparar la base de datos (migraciones, seeds, scripts de inicialización)
+4. Levantar servicios auxiliares necesarios (colas, caché, etc.)
+5. Levantar el servidor o ejecutar el proyecto
+6. Verificar que funciona (endpoint o comando de comprobación)

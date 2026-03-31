@@ -142,13 +142,30 @@ FLUJO = {
         "input":   "mi_proyecto_actual/01_spec/01_arquitectura.md",
         "output":  "mi_proyecto_actual/src/02_codigo_generado.md",
         "temperature": 0.2,
+        # Tras guardar, activa el paso 2.5 si hay validators configurados
+        "activar_validacion": True,
+    },
+    "2.5": {
+        "nombre":     "Reparador de Código",
+        "agente_key": "constructor",
+        "agente":     "plantillas/agents/02_agente_constructor.md",
+        "prompt":     "plantillas/prompts/02.5_prompt_reparacion.md",
+        "input":      "mi_proyecto_actual/src/02_codigo_generado.md",
+        # Las reglas de validación del lenguaje se inyectan desde los .md de validators/
+        # El bloque se construye dinámicamente en ejecutar_paso
+        "output":     "mi_proyecto_actual/src/02.5_codigo_reparado.md",
+        "temperature": 0.1,
+        # Solo se ejecuta si validaciones.json tiene validators configurados
+        "condicional_validators": True,
     },
     "3": {
         "nombre":  "Debugging (Detective)",
         "agente_key": "detective",
         "agente":  "plantillas/agents/03_agente_detective.md",
         "prompt":  "plantillas/prompts/03_prompt_resolucion.md",
-        "input":   "mi_proyecto_actual/src/02_codigo_generado.md",
+        # Lee el código reparado si existe, si no el generado original
+        "input":          "mi_proyecto_actual/src/02.5_codigo_reparado.md",
+        "input_fallback": "mi_proyecto_actual/src/02_codigo_generado.md",
         "output":  "mi_proyecto_actual/src/03_codigo_corregido.md",
         "temperature": 0.1,
     },
@@ -270,8 +287,49 @@ def extraer_y_guardar_archivos(contenido: str, directorio_destino: str) -> list[
 
 
 # ──────────────────────────────────────────────
-# UTILIDADES DE I/O
+# VALIDACIÓN BASADA EN AGENTE — plugins .md por lenguaje
+# Configuración en validaciones.json — sin código específico de lenguaje
 # ──────────────────────────────────────────────
+
+RUTA_ERRORES      = "mi_proyecto_actual/src/02.5_errores_validacion.md"
+RUTA_VALIDACIONES = "validaciones.json"
+
+def cargar_validators_md() -> str:
+    """
+    Lee validaciones.json para saber qué .md de validación cargar,
+    y devuelve el contenido concatenado de todos ellos.
+
+    Formato de validaciones.json:
+        {
+          "validators": [
+            "plantillas/validators/python.md",
+            "plantillas/validators/django.md"
+          ]
+        }
+
+    Si el archivo no existe o no hay validators, devuelve cadena vacía
+    (el paso 2.5 se omitirá por falta de reglas).
+    """
+    if not os.path.exists(RUTA_VALIDACIONES):
+        return ""
+
+    with open(RUTA_VALIDACIONES, "r", encoding="utf-8") as f:
+        datos = json.load(f)
+
+    rutas = [v for k, v in datos.items() if k == "validators"]
+    if not rutas or not rutas[0]:
+        return ""
+
+    bloques = []
+    for ruta in rutas[0]:
+        if os.path.exists(ruta):
+            with open(ruta, "r", encoding="utf-8") as f:
+                bloques.append(f"### Reglas de: {ruta}\n\n{f.read().strip()}")
+        else:
+            print(f"   ⚠️  Validator no encontrado: {ruta}")
+
+    return "\n\n".join(bloques)
+
 
 def leer_archivo(ruta: str) -> str:
     """Lee un archivo. Si no existe, devuelve un aviso en lugar de romper el script."""
@@ -398,6 +456,13 @@ def ejecutar_paso(paso: str, auto: bool = False,
 
     total_pasos = len(FLUJO)
 
+    # ── Paso condicional: solo ejecutar si hay validators configurados ──
+    if config.get("condicional_validators"):
+        validators_md = cargar_validators_md()
+        if not validators_md:
+            print(f"\n⏭️  Paso {paso} omitido — no hay validators configurados en validaciones.json.")
+            return True
+
     # Mostrar progreso si estamos en modo automático
     if auto and tiempos is not None:
         _barra_progreso(completados, total_pasos, tiempos)
@@ -427,16 +492,25 @@ def ejecutar_paso(paso: str, auto: bool = False,
 {skills}
 """
 
-    contenido_input = leer_archivo(config["input"])
+    # input con fallback: usa el principal si existe, si no el fallback
+    ruta_input = config["input"]
+    if "input_fallback" in config and not os.path.exists(ruta_input):
+        ruta_input = config["input_fallback"]
+        print(f"  ⚠️  Input principal no encontrado, usando fallback: {ruta_input}")
 
-    # MEJORA 1: si hay input_extra (reporte del Crítico), se añade al user prompt
+    contenido_input = leer_archivo(ruta_input)
+
+    # Bloque extra: reporte del Crítico (paso 5) o reglas de validators (paso 2.5)
     bloque_extra = ""
     if "input_extra" in config:
         extra = leer_archivo(config["input_extra"])
-        bloque_extra = f"""
-=== REPORTE DE REVISIÓN DEL CRÍTICO (ÚSALO PARA GUIAR TU REFACTORING) ===
-{extra}
-"""
+        tag   = config.get("input_extra_tag", "REPORTE DE REVISIÓN DEL CRÍTICO")
+        bloque_extra = f"\n=== {tag} ===\n{extra}\n"
+
+    # Paso 2.5: inyectar las reglas de validación desde los .md de validators/
+    if config.get("condicional_validators"):
+        validators_md = cargar_validators_md()
+        bloque_extra += f"\n=== REGLAS DE VALIDACIÓN DEL LENGUAJE ===\n{validators_md}\n"
 
     user_prompt = f"""=== ESTADO ACTUAL DEL PROYECTO (INPUT) ===
 {contenido_input}
@@ -494,11 +568,13 @@ def ejecutar_paso(paso: str, auto: bool = False,
 # ──────────────────────────────────────────────
 
 def modo_automatico() -> None:
-    """Ejecuta los 7 pasos en secuencia sin confirmaciones interactivas."""
-    print("\n🤖 MODO AUTOMÁTICO — ejecutando los 7 pasos en secuencia\n")
+    """Ejecuta todos los pasos en secuencia sin confirmaciones interactivas."""
+    print("\n🤖 MODO AUTOMÁTICO — ejecutando el pipeline completo\n")
     tiempos: list[float] = []
-    pasos   = sorted(FLUJO.keys())
-    total   = len(pasos)
+
+    # Orden explícito para garantizar que 2.5 va entre 2 y 3
+    pasos = ["1", "2", "2.5", "3", "4", "5", "6", "7"]
+    total = len(pasos)
 
     for i, paso in enumerate(pasos):
         exito = ejecutar_paso(paso, auto=True, completados=i, tiempos=tiempos)
@@ -512,6 +588,9 @@ def modo_automatico() -> None:
     total_seg        = int(sum(tiempos))
     total_m, total_s = divmod(total_seg, 60)
     print(f"🏁 Pipeline completo en {total_m}m {total_s:02d}s. Todos los archivos generados.")
+
+    print("\n💤 Apagando el equipo en 60 segundos...")
+    os.system("shutdown /s /t 60")
 
 
 def mostrar_ayuda() -> None:
