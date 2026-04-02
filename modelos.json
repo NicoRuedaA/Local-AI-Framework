@@ -1,0 +1,13 @@
+{
+  "_comentario_1": "Proveedores disponibles: 'lmstudio' (local) o 'gemini' (Google AI Studio)",
+  "_comentario_2": "Para lmstudio: usa el nombre exacto que aparece en LM Studio > Local Server",
+  "_comentario_3": "Para gemini: pon tu API key en .env como GEMINI_API_KEY=tu_clave_aqui",
+
+  "arquitecto": { "proveedor": "lmstudio", "modelo": "qwen2.5-coder-7b-instruct" },
+  "constructor": { "proveedor": "lmstudio", "modelo": "qwen2.5-coder-7b-instruct" },
+  "detective": { "proveedor": "lmstudio", "modelo": "qwen2.5-coder-7b-instruct" },
+  "critico": { "proveedor": "lmstudio", "modelo": "qwen2.5-coder-7b-instruct" },
+  "optimizador": { "proveedor": "lmstudio", "modelo": "qwen2.5-coder-7b-instruct" },
+  "escudo": { "proveedor": "lmstudio", "modelo": "qwen2.5-coder-7b-instruct" },
+  "narrador": { "proveedor": "lmstudio", "modelo": "qwen2.5-coder-7b-instruct" }
+}
