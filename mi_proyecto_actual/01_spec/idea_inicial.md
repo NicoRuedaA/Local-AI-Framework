@@ -2,40 +2,52 @@
 
 ## ¿Qué quiero construir?
 
-"Nexo" es una plataforma web para la gestión centralizada de feedback de usuarios y roadmap de productos. Permite a los usuarios sugerir nuevas funcionalidades, votar por sus favoritas y dejar comentarios, mientras que los administradores pueden priorizar estas solicitudes y actualizar su estado (ej. "Planeado", "Completado") para mantener a la comunidad informada sobre el progreso del producto.
+"ProjectLite" es una API REST para la gestión de obras de construcción.
+Permite a una empresa organizar sus proyectos, las obras asociadas a cada
+proyecto, y las partes de trabajo diarias dentro de cada obra. La empresa
+también gestiona su plantilla de trabajadores, que pueden ser asignados
+a obras concretas.
 
 ## Usuarios objetivo
 
-Equipos de desarrollo y Product Managers que necesitan priorizar su trabajo basados en datos reales, y los usuarios finales de sus productos que desean que sus peticiones sean escuchadas y organizadas.
+Empresas constructoras que necesitan llevar un registro estructurado de
+sus proyectos y obras, y los responsables internos que gestionan la
+plantilla y el avance diario del trabajo.
 
 ## Requisitos funcionales
 
-Autenticación y autorización de usuarios con diferenciación estricta de roles (Usuario estándar vs. Administrador/Staff).
+Gestión de la empresa: cada usuario pertenece a una empresa. Todos los
+datos (proyectos, obras, partes, trabajadores) son privados a esa empresa
+— ningún usuario puede ver datos de otra empresa.
 
-Creación, edición, categorización (etiquetas/tags) y búsqueda de publicaciones (Feature Requests).
+Gestión de trabajadores: la empresa puede registrar trabajadores. Un
+trabajador es un usuario del sistema vinculado a una empresa.
 
-Sistema de votación (Upvoting) robusto que impida votos duplicados de un mismo usuario y gestione la concurrencia de forma segura.
+Gestión de proyectos: la empresa puede crear proyectos. Un proyecto
+pertenece a una única empresa.
 
-Sistema de comentarios anidados (recursivos) dentro de cada publicación.
+Gestión de obras: cada proyecto puede tener múltiples obras. Una obra
+pertenece a un único proyecto.
 
-Capacidad para que los administradores cambien el "Estado" de una publicación ("Bajo revisión", "Planeado", "En desarrollo", "Lanzado").
+Gestión de partes: cada obra puede tener múltiples partes de trabajo.
+Una parte registra la fecha, una descripción del trabajo realizado, y
+el trabajador responsable.
 
-Tarea en segundo plano que envíe notificaciones por correo electrónico a todos los usuarios que votaron por una propuesta cuando su estado pase a "Lanzado".
+Autenticación y autorización: autenticación por token. Un usuario solo
+puede acceder a los datos de su propia empresa (filtrado multi-tenant
+en todos los endpoints).
 
 ## Restricciones técnicas
 
-Lenguaje/Framework: Python 3.11+ con Django 5.x y Django REST Framework (DRF) para exponer la API.
-
-Base de datos: PostgreSQL (ideal para probar concurrencia y transacciones en los votos) o SQLite (aceptable para la fase inicial de desarrollo local).
-
-Plataforma: Backend enfocado en API REST, con un panel de administración nativo de Django altamente customizado.
-
-Otras restricciones: Uso de Celery + Redis para la gestión de tareas asíncronas (envío de emails).
+- Lenguaje/Framework: Python 3.11+ con Django 5.x y Django REST Framework.
+- Base de datos: PostgreSQL (producción) / SQLite (desarrollo local).
+- Sin tareas asíncronas en esta versión: no se requiere Celery ni Redis.
+- Backend puro: API REST + panel de administración de Django. Sin frontend.
+- Sin facturación, pagos ni gestión de planes.
 
 ## Lo que NO debe hacer
 
-No debe incluir pasarelas de pago, facturación o gestión de planes SaaS.
-
-No necesita chat en tiempo real ni WebSockets en esta primera iteración.
-
-No requiere la configuración de un framework frontend complejo (como React, Angular o Vue); la evaluación se centrará puramente en la arquitectura del backend, el ORM de Django y la API.
+- No incluye notificaciones por email ni tareas en segundo plano.
+- No incluye chat, comentarios ni actividad en tiempo real.
+- No incluye gestión de roles complejos: hay un único tipo de usuario.
+- No incluye multi-idioma ni internacionalización.
