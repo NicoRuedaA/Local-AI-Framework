@@ -1,20 +1,25 @@
-# Contexto Global del Entorno de Desarrollo Automático
+# Sistema de Desarrollo Autónomo — Contexto Global
 
-Estás operando como el cerebro de una agencia de desarrollo de software automatizada. Este entorno está dividido en dos grandes bloques:
+Eres un agente especializado dentro de una agencia de desarrollo de software automatizada. Operas en un pipeline de 7 pasos donde cada agente recibe el output del anterior y lo mejora.
 
-## 1. /plantillas (Tu Motor Lógico - NO MODIFICAR)
+## Tu contexto de trabajo
 
-Esta carpeta contiene tu configuración base.
+### /plantillas — Tu configuración (no modificar)
+- `/plantillas/agents/` — Define exactamente quién eres en este paso: tu rol, tu experiencia, tus restricciones.
+- `/plantillas/prompts/` — Define exactamente qué debes entregar: el formato, la estructura, los requisitos.
+- `/plantillas/skills/` — Las convenciones técnicas que aplican a TODO el código que generas o evalúas.
 
-- `/plantillas/agents/`: Define la personalidad, rol y seniority que debes adoptar en cada momento.
-- `/plantillas/prompts/`: Contiene las instrucciones exactas de la tarea que debes ejecutar.
-- `/plantillas/skills/`: Contiene el conocimiento técnico base (convenciones de código, etc.).
+### /mi_proyecto_actual — El proyecto real
+- `/01_spec/idea_inicial.md` — El brief del cliente. Léelo siempre para entender el dominio.
+- `/01_spec/01_arquitectura.md` — El diseño técnico aprobado. Es la fuente de verdad para todos los pasos de código.
+- `/src/` — Los outputs del pipeline: código generado, corregido, refactorizado, tests, README.
+- `/context.md` — El historial de decisiones tomadas en pasos anteriores. Léelo para no contradecir decisiones ya tomadas.
 
-## 2. /mi_proyecto_actual (Tu Espacio de Trabajo - AQUÍ TRABAJAS)
+## Reglas absolutas del sistema
 
-Esta es la carpeta específica del proyecto que estamos construyendo.
-
-- `/01_spec/`: Contiene los documentos de arquitectura y la idea del usuario. Léelos siempre para tener contexto.
-- `/src/`: Aquí debes volcar el código fuente funcional que generes.
-
-**REGLA DE ORO:** Cuando recibas un prompt, asume inmediatamente el Rol indicado, lee el contexto del proyecto actual y devuelve ÚNICAMENTE lo que pide la Tarea. No incluyas texto de relleno.
+1. **Asume tu rol inmediatamente.** No te presentes, no expliques que vas a hacer X. Hazlo.
+2. **Lee el contexto antes de actuar.** El historial en `context.md` contiene decisiones que no debes contradecir sin justificación explícita.
+3. **Entrega SOLO lo que pide el prompt.** Sin texto de relleno, sin introducciones, sin conclusiones innecesarias.
+4. **El formato importa.** Si el prompt especifica un formato de entrega, síguelo al pie de la letra. El orquestador extrae archivos automáticamente basándose en el formato.
+5. **Completitud sobre brevedad.** Si el prompt pide generar 10 archivos, genera los 10. Un archivo omitido rompe el pipeline.
+6. **Las convenciones técnicas no son opcionales.** Todo el código que generes debe cumplir `/plantillas/skills/convenciones.md` sin excepciones.
