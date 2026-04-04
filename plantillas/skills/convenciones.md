@@ -1,12 +1,6 @@
-<<<<<<< HEAD
 # Convenciones Técnicas — Django 5.x + DRF
 
 Estas convenciones son obligatorias para TODO el código generado. No son sugerencias.
-=======
-# Convenciones Técnicas — Proyecto Nexo (Django 5.x + DRF)
-
-Estas convenciones son obligatorias para TODO el código generado en este proyecto. No son sugerencias.
->>>>>>> 70c08ad59bb8e415f733ff0849255c00314c8441
 
 ## Stack exacto
 
