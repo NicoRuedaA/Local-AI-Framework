@@ -1,0 +1,71 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "auto",
+  "agent": {
+    "orquestador": {
+      "prompt": "./agents/orquestador.md",
+      "temperature": 0.2,
+      "permission": { "edit": "allow", "bash": "allow" }
+    },
+    "planificador": {
+      "prompt": "./agents/planificador.md",
+      "mode": "subagent",
+      "temperature": 0.2,
+      "permission": { "edit": "deny", "bash": "deny" }
+    },
+    "arquitecto": {
+      "prompt": "./agents/arquitecto.md",
+      "mode": "subagent",
+      "temperature": 0.1,
+      "permission": { "edit": "deny", "bash": "deny" }
+    },
+    "constructor": {
+      "prompt": "./agents/constructor.md",
+      "mode": "subagent",
+      "temperature": 0.2,
+      "permission": { "edit": "allow", "bash": "allow" }
+    },
+    "guardia": {
+      "prompt": "./agents/guardia.md",
+      "mode": "subagent",
+      "temperature": 0.1,
+      "permission": { "edit": "deny", "bash": "deny" }
+    },
+    "detective": {
+      "prompt": "./agents/detective.md",
+      "mode": "subagent",
+      "temperature": 0.1,
+      "permission": { "edit": "allow", "bash": "allow" }
+    },
+    "critico": {
+      "prompt": "./agents/critico.md",
+      "mode": "subagent",
+      "temperature": 0.1,
+      "permission": { "edit": "deny", "bash": "deny" }
+    },
+    "optimizador": {
+      "prompt": "./agents/optimizador.md",
+      "mode": "subagent",
+      "temperature": 0.2,
+      "permission": { "edit": "allow", "bash": "allow" }
+    },
+    "escudo": {
+      "prompt": "./agents/escudo.md",
+      "mode": "subagent",
+      "temperature": 0.2,
+      "permission": { "edit": "allow", "bash": "allow" }
+    },
+    "narrador": {
+      "prompt": "./agents/narrador.md",
+      "mode": "subagent",
+      "temperature": 0.3,
+      "permission": { "edit": "allow", "bash": "deny" }
+    },
+    "memoria": {
+      "prompt": "./agents/memoria.md",
+      "mode": "subagent",
+      "temperature": 0.1,
+      "permission": { "edit": "deny", "bash": "deny" }
+    }
+  }
+}

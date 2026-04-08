@@ -1,0 +1,68 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "agent": {
+    "arquitecto": {
+      "description": "Diseña la arquitectura de sistemas Unity antes de escribir código. Solo analiza y decide, nunca escribe código.",
+      "mode": "subagent",
+      "temperature": 0.1,
+      "permission": {
+        "edit": "deny",
+        "bash": "deny"
+      }
+    },
+    "constructor": {
+      "description": "Genera código C# para Unity siguiendo la arquitectura definida. Entrega archivos completos, production-ready.",
+      "mode": "subagent",
+      "temperature": 0.2,
+      "permission": {
+        "edit": "allow",
+        "bash": "allow"
+      }
+    },
+    "detective": {
+      "description": "Diagnostica bugs en código Unity/C#. Sigue razonamiento causa-raíz, no parchea síntomas.",
+      "mode": "subagent",
+      "temperature": 0.1,
+      "permission": {
+        "edit": "allow",
+        "bash": "allow"
+      }
+    },
+    "critico": {
+      "description": "Revisa código Unity/C# en profundidad: rendimiento, GC, arquitectura y buenas prácticas. Produce reporte accionable.",
+      "mode": "subagent",
+      "temperature": 0.1,
+      "permission": {
+        "edit": "deny",
+        "bash": "deny"
+      }
+    },
+    "optimizador": {
+      "description": "Refactoriza código Unity/C# basándose en el reporte del Crítico. Aplica todas las mejoras priorizadas sin cambiar el comportamiento externo.",
+      "mode": "subagent",
+      "temperature": 0.2,
+      "permission": {
+        "edit": "allow",
+        "bash": "allow"
+      }
+    },
+    "escudo": {
+      "description": "Escribe tests Unity (EditMode y PlayMode) con Unity Test Framework. Genera tests que verifican comportamiento real.",
+      "mode": "subagent",
+      "temperature": 0.2,
+      "permission": {
+        "edit": "allow",
+        "bash": "allow"
+      }
+    },
+    "narrador": {
+      "description": "Genera documentación técnica para Unity: README, docstrings XML en C#, guías de sistemas.",
+      "mode": "subagent",
+      "temperature": 0.3,
+      "permission": {
+        "edit": "allow",
+        "bash": "deny"
+      }
+    }
+  }
+}
