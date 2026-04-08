@@ -65,19 +65,19 @@ SmartAI is an autonomous software development framework that orchestrates a team
 
 ### Multi-Agent Team
 
-| Agent | Role | Temperature |
-| ----- | ---- | ----------- |
-| **Orquestador** | Primary coordinator, delegates work | 0.2 |
-| **Planificador** | Breaks complex tasks into executable steps | 0.2 |
-| **Arquitecto** | Designs interfaces, class hierarchies, patterns | 0.1 |
-| **Aparejador** | Main code generator | 0.2 |
-| **Guardia** | Pre-execution security auditor | 0.1 |
-| **Detective** | Bug analysis and root cause identification | 0.1 |
-| **Critico** | Code reviewer | 0.1 |
-| **Optimizador** | Performance refactoring | 0.2 |
-| **Escudo** | Test suite generator | 0.2 |
-| **Narrador** | Documentation generator | 0.3 |
-| **Memoria** | Project context keeper | 0.1 |
+| Agent            | Role                                            | Temperature |
+| ---------------- | ----------------------------------------------- | ----------- |
+| **Orquestador**  | Primary coordinator, delegates work             | 0.2         |
+| **Planificador** | Breaks complex tasks into executable steps      | 0.2         |
+| **Arquitecto**   | Designs interfaces, class hierarchies, patterns | 0.1         |
+| **Aparejador**   | Main code generator                             | 0.2         |
+| **Guardia**      | Pre-execution security auditor                  | 0.1         |
+| **Detective**    | Bug analysis and root cause identification      | 0.1         |
+| **Critico**      | Code reviewer                                   | 0.1         |
+| **Optimizador**  | Performance refactoring                         | 0.2         |
+| **Escudo**       | Test suite generator                            | 0.2         |
+| **Narrador**     | Documentation generator                         | 0.3         |
+| **Memoria**      | Project context keeper                          | 0.1         |
 
 ### Supported Platforms
 
@@ -109,12 +109,14 @@ SmartAI is an autonomous software development framework that orchestrates a team
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/NicoRuedaA/Local-AI-Framework.git
 cd Local-AI-Framework
 ```
 
 2. Configure your `opencode.json`:
+
 ```json
 {
   "model": "auto",
@@ -128,6 +130,7 @@ cd Local-AI-Framework
 ```
 
 3. Enable Unity MCP (optional):
+
 ```json
 {
   "mcp": {
@@ -144,16 +147,14 @@ cd Local-AI-Framework
 
 The framework uses an 8-stage development pipeline:
 
-| Stage | Agent | Purpose |
-| ----- | ----- | ------- |
-| 1 | Planificador + Arquitecto | Architecture design |
-| 2 | Aparejador | Full code generation |
-| 2.5 | Appejador | Language-specific error fixing |
-| 3 | Detective | Bug detection and fixing |
-| 4 | Critico | Code review (security + performance) |
-| 5 | Optimizador | Performance optimization |
-| 6 | Escudo | Test suite generation |
-| 7 | Narrador | Technical documentation |
+| Stage | Agent                     | Purpose                              |
+| ----- | ------------------------- | ------------------------------------ |
+| 1     | Planificador + Arquitecto | Architecture design                  |
+| 2     | Detective                 | Bug detection and fixing             |
+| 3     | Critico                   | Code review (security + performance) |
+| 4     | Optimizador               | Performance optimization             |
+| 5     | Escudo                    | Test suite generation                |
+| 6     | Narrador                  | Technical documentation              |
 
 ## Project Structure
 
@@ -210,11 +211,11 @@ Patterns for Unity Editor integration:
 
 ### Agent Temperature Guidelines
 
-| Task Type | Recommended Temperature |
-| --------- | ---------------------- |
-| Code generation | 0.1 - 0.2 |
-| Creative documentation | 0.3 |
-| Structured planning | 0.15 - 0.2 |
+| Task Type              | Recommended Temperature |
+| ---------------------- | ----------------------- |
+| Code generation        | 0.1 - 0.2               |
+| Creative documentation | 0.3                     |
+| Structured planning    | 0.15 - 0.2              |
 
 ### Permission Model
 
@@ -223,8 +224,8 @@ Each agent has configurable permissions:
 ```json
 {
   "permission": {
-    "edit": "allow",    // Can modify files
-    "bash": "allow"    // Can execute commands
+    "edit": "allow", // Can modify files
+    "bash": "allow" // Can execute commands
   }
 }
 ```
